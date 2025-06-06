@@ -1,16 +1,14 @@
 services:
   web-app:
-    build:
-      context: .
+    build: 
+      context: ./DRFapp
+      dockerfile: service/Dockerfile
     ports:
       - "8000:8000"
     volumes:
-      - ./DRFapp/service:/DRFapp/service
-    environment:
-      - DB_HOST=database
-      - DB_NAME=dbname
-      - DB_USER=dbuser
-      - DB_PASS=pass
+      - ./DRFapp/service:/service
+    env_file:
+      - .env
 
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8000"
@@ -21,12 +19,27 @@ services:
 
   database:
     image: postgres:14.6-alpine
+    ports:  
+    - "5433:${DATABASE_PORT}"
     environment:
-      - POSTGRES_DB=dbname
-      - POSTGRES_USER=dbuser
-      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dbuser -d dbname"]
       interval: 2s
       timeout: 2s
       retries: 10
+
+  telegram-bot:
+    build: 
+      context: ./DRFapp
+      dockerfile: tgbot/Dockerfile
+    volumes:
+      - ./DRFapp/tgbot:/tgbot
+    env_file:
+      - .env
+    depends_on:
+      - web-app
+    command: >
+      sh -c "watchmedo auto-restart python tgbot.py"
