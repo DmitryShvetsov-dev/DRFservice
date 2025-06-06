@@ -4,13 +4,9 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
-    Boolean,
-    ForeignKey,
     create_engine,
-    DateTime,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
-import time
 
 bot = telebot.TeleBot(config.TELEGRAM_TOKEN)
 
@@ -23,16 +19,6 @@ class CustomUser(Base):
     username = Column(String)
     phone = Column(String)
     telegram_id = Column(String)
-
-
-class Orders(Base):
-    __tablename__ = "products_orders"
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users_customuser.id"))
-    product = Column(String)
-    order_date = Column(DateTime)
-    is_notified = Column(Boolean)
-
 
 engine = create_engine(config.DATABASE_URL)
 Session = sessionmaker(bind=engine)
@@ -65,22 +51,4 @@ def handle_contact(message):
         else:
             bot.send_message(message.chat.id, "Пользователь с таким номером не найден")
 
-
-def check_new_orders():
-    while True:
-        new_orders = session.query(Orders).filter_by(is_notified=False).all()
-
-        for order in new_orders:
-            user = session.query(CustomUser).filter_by(id=order.user_id).first()
-
-            bot.send_message(
-                user.telegram_id, f"Вам пришёл новый заказ: {order.product}"
-            )
-            order.is_notified = True
-            session.commit()
-
-        session.close()
-        time.sleep(10)  
-
-check_new_orders()
 bot.polling(none_stop=True)

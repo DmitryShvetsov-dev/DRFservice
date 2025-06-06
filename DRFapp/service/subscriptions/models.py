@@ -4,7 +4,7 @@ from users.models import CustomUser
 
 
 class Tariff(models.Model):
-    tariff_type = models.CharField(max_length=20)
+    tariff_type = models.CharField(max_length=20, default="full")
     discount_percent = models.PositiveIntegerField(
         default=0, validators=[MaxValueValidator(100)]
     )
