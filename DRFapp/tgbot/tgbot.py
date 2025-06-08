@@ -50,5 +50,6 @@ def handle_contact(message):
             bot.send_message(message.chat.id, "Вы успешно зарегистрированы в системе")
         else:
             bot.send_message(message.chat.id, "Пользователь с таким номером не найден")
+        session.close()
 
 bot.polling(none_stop=True)
